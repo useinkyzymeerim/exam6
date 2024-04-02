@@ -1,6 +1,4 @@
 package com.jdbc.jwtsecurity1.entity;
-
-import com.jdbc.jwtsecurity1.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +22,7 @@ public class User {
     private String name;
     private String username;
     private String password;
-    private Status status;
+    private boolean blocked;
     @ManyToMany(fetch = EAGER)
     private Collection<Role> roles = new ArrayList<>();
 }

@@ -7,11 +7,13 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jdbc.jwtsecurity1.entity.Role;
 import com.jdbc.jwtsecurity1.entity.User;
+import com.jdbc.jwtsecurity1.exception.UserNotFoundException;
 import com.jdbc.jwtsecurity1.model.UserModel;
 import com.jdbc.jwtsecurity1.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -36,11 +38,11 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 public class UserController {
     private final UserService userService;
 
-    @PostAuthorize(value = "")
-    @GetMapping("/users")
-    public ResponseEntity<List<com.jdbc.jwtsecurity1.entity.User>> getUsers() {
-        return ResponseEntity.ok().body(userService.getUsers());
-    }
+        @PostAuthorize(value = "")
+        @GetMapping("/user")
+        public ResponseEntity<List<com.jdbc.jwtsecurity1.entity.User>> getUsers() {
+            return ResponseEntity.ok().body(userService.getUsers());
+        }
 
     @PostMapping("/user/save")
     public ResponseEntity<com.jdbc.jwtsecurity1.entity.User> saveUser(@RequestBody User user) {
@@ -95,6 +97,34 @@ public class UserController {
             }
         } else {
             throw new RuntimeException("Токен не удалось обновить");
+        }
+    }
+
+    @PutMapping("/{userId}/block")
+    public ResponseEntity<String> blockUserByAdmin(@PathVariable Long userId) {
+        try {
+            userService.blockUser(userId);
+            return new ResponseEntity<>("User with id " + userId + " has been blocked", HttpStatus.OK);
+        } catch (UserNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+    @PutMapping("/{userId}/unblock")
+    public ResponseEntity<String> unblockUserByAdmin(@PathVariable Long userId) {
+        try {
+            userService.unblockUser(userId);
+            return new ResponseEntity<>("User with id " + userId + " has been unblocked", HttpStatus.OK);
+        } catch (UserNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+    @DeleteMapping("/{userId}/delete")
+    public ResponseEntity<String> deleteUser(@PathVariable long userId) {
+        try {
+            userService.delete(userId);
+            return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new  ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

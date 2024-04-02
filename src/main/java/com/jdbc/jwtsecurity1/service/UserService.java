@@ -19,6 +19,8 @@ public interface UserService {
     void addRoleToUser(String username, String roleName);
 
     User getUser(String username);
-
+    void delete(long userId);
     List<User> getUsers();
+    void blockUser(Long userId);
+    void unblockUser(Long userId);
 }

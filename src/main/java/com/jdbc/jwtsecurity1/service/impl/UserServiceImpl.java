@@ -2,6 +2,7 @@ package com.jdbc.jwtsecurity1.service.impl;
 
 import com.jdbc.jwtsecurity1.entity.Role;
 import com.jdbc.jwtsecurity1.entity.User;
+import com.jdbc.jwtsecurity1.exception.UserNotFoundException;
 import com.jdbc.jwtsecurity1.repo.RoleRepo;
 import com.jdbc.jwtsecurity1.repo.UserRepo;
 import com.jdbc.jwtsecurity1.service.UserService;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,9 +36,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("Пользователь не найден");
         }
-        user.setStatus(com.jdbc.jwtsecurity1.enums.Status.Active);
-        userRepo.save(user);
-
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         user.getRoles().forEach(role -> {
             authorities.add(new SimpleGrantedAuthority(role.getName()));
@@ -54,9 +53,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public Role saveRole(Role role) {
         return roleRepo.save(role);
     }
-
-
-
     @Override
     public void addRoleToUser(String username, String roleName) {
         User user = userRepo.findByUsername(username);
@@ -72,5 +68,23 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public List<User> getUsers() {
         return userRepo.findAll();
+    }
+
+    public void blockUser(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + userId + " not found"));
+        user.setBlocked(true);
+        userRepo.save(user);
+    }
+
+    public void unblockUser(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + userId + " not found"));
+        user.setBlocked(false);
+        userRepo.save(user);
+    }
+    @Override
+    public void delete(long userId) {
+        userRepo.deleteById(userId);
     }
 }
